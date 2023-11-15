@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox prefHeight="385.0" prefWidth="703.0" spacing="5.0"
+<VBox fx:id="rootVBox" prefHeight="385.0" prefWidth="703.0" spacing="5.0"
    xmlns="http://javafx.com/javafx/21.0.1"
    xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.jone.PrimaryController">
    <children>
@@ -35,7 +35,7 @@
          </menus>
       </MenuBar>
       <Label alignment="CENTER" prefHeight="17.0" prefWidth="709.0" text="URLs:" />
-      <TextArea fx:id="urlsTextArea" prefHeight="194.0" prefWidth="703.0" text="Insert URLs here. You can separate each URL by either commas or newline (enter button)">
+      <TextArea fx:id="urlsTextArea" prefHeight="194.0" prefWidth="703.0" promptText="Insert URLs here. You can separate each URL by commas, spaces or newline (enter button)">
          <padding>
             <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
          </padding>
@@ -57,7 +57,7 @@
       <ButtonBar prefHeight="40.0" prefWidth="200.0">
          <buttons>
             <Button mnemonicParsing="false" onAction="#handleSelectDirectory" text="Select Download Directory" />
-            <Button fx:id="downloadImagesButton" disable="true" mnemonicParsing="false" text="Download Images" />
+            <Button fx:id="downloadImagesButton" onAction='#handleDownloadImages' disable="true" mnemonicParsing="false" text="Download Images" />
             <Button fx:id="downloadPdfButton" disable="true" mnemonicParsing="false" text="Download PDF" />
          </buttons>
          <padding>

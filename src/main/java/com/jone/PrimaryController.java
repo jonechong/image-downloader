@@ -1,16 +1,24 @@
 package com.jone;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.ResourceBundle;
+import java.net.URL;
 
-public class PrimaryController {
+public class PrimaryController implements Initializable {
+
+    @FXML
+    private VBox rootVBox;
     @FXML
     private Label selectedDirectoryLabel;
     @FXML
@@ -21,6 +29,12 @@ public class PrimaryController {
     private Button downloadPdfButton;
 
     private File selectedDirectory;
+
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        // This will request focus on the root VBox when the scene is loaded
+        Platform.runLater(() -> rootVBox.requestFocus());
+    }
 
     @FXML
     private void handleSelectDirectory() {
@@ -41,7 +55,7 @@ public class PrimaryController {
     }
 
     private List<String> extractUrls(String text) {
-        String[] splitText = text.split(",|\n");
+        String[] splitText = text.split("\\s+|,|\n");
         return new ArrayList<>(Arrays.asList(splitText));
     }
 
