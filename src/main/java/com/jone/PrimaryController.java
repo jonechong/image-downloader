@@ -3,17 +3,22 @@ package com.jone;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
-import java.io.File;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
-import java.net.URL;
 
 public class PrimaryController implements Initializable {
 
@@ -59,14 +64,68 @@ public class PrimaryController implements Initializable {
         return new ArrayList<>(Arrays.asList(splitText));
     }
 
+    private void downloadImage(String imageUrl, Path targetDirectory) throws IOException {
+        try {
+            URL url = new URL(imageUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+
+            // Check if the response code indicates a successful download
+            int responseCode = connection.getResponseCode();
+            if (responseCode != HttpURLConnection.HTTP_OK) {
+                throw new IOException("Failed to download: " + imageUrl);
+            }
+
+            // Get the file name from the URL and sanitize it
+            String fileName = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
+            fileName = fileName.replaceAll("[^a-zA-Z0-9.-]", "_"); // Replace illegal characters with underscores
+
+            // Ensure the file name ends with ".jpg"
+            if (!fileName.toLowerCase().endsWith(".jpg")) {
+                fileName += ".jpg";
+            }
+
+            Path filePath = targetDirectory.resolve(fileName);
+
+            // Check if the file already exists, and if so, append a number to the file name
+            int count = 1;
+            while (Files.exists(filePath)) {
+                String baseName = fileName.substring(0, fileName.lastIndexOf(".jpg"));
+                String extension = ".jpg";
+                fileName = baseName + " (" + count + ")" + extension;
+                filePath = targetDirectory.resolve(fileName);
+                count++;
+            }
+
+            // Copy the downloaded image to the selected directory
+            try (InputStream inputStream = connection.getInputStream()) {
+                Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (IOException e) {
+            throw new IOException("Invalid URL: " + imageUrl, e);
+        }
+    }
+
     @FXML
     private void handleDownloadImages() {
         String text = urlsTextArea.getText();
         List<String> urls = extractUrls(text);
-        // For now, just log the URLs
         for (String url : urls) {
-            System.out.println(url);
+            try {
+                downloadImage(url, selectedDirectory.toPath());
+            } catch (IOException e) {
+                // Handle the error by displaying an alert to the user
+                showAlert("Error", "Failed to download image", e.getMessage(), Alert.AlertType.ERROR);
+            }
         }
+    }
+
+    private void showAlert(String title, String headerText, String contentText, Alert.AlertType alertType) {
+        Alert alert = new Alert(alertType);
+        alert.setTitle(title);
+        alert.setHeaderText(headerText);
+        alert.setContentText(contentText);
+        alert.showAndWait();
     }
 
 }
