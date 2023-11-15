@@ -47,7 +47,7 @@
                   <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                </padding>
             </Label>
-            <Label text="dir">
+            <Label fx:id="selectedDirectoryLabel">
                <padding>
                   <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                </padding>
@@ -56,7 +56,7 @@
       </HBox>
       <ButtonBar prefHeight="40.0" prefWidth="200.0">
          <buttons>
-            <Button mnemonicParsing="false" text="Select Download Directory" />
+            <Button mnemonicParsing="false" onAction="#handleSelectDirectory" text="Select Download Directory" />
             <Button disable="true" mnemonicParsing="false" text="Download Images" />
             <Button disable="true" mnemonicParsing="false" text="Download PDF" />
          </buttons>
