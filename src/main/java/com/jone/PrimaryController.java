@@ -125,6 +125,7 @@ public class PrimaryController implements Initializable {
         alert.setTitle(title);
         alert.setHeaderText(headerText);
         alert.setContentText(contentText);
+        alert.getDialogPane().setGraphic(null); // Because the X is ugly as hell
         alert.showAndWait();
     }
 
