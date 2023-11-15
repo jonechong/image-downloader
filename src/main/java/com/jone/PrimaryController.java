@@ -9,6 +9,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
+
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -19,6 +20,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
+
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 
 public class PrimaryController implements Initializable {
 
@@ -127,6 +134,93 @@ public class PrimaryController implements Initializable {
         alert.setContentText(contentText);
         alert.getDialogPane().setGraphic(null); // Because the X is ugly as hell
         alert.showAndWait();
+    }
+
+    private void mergeImagesIntoPDF(List<String> imageUrls, Path targetDirectory) throws IOException {
+        if (imageUrls == null || imageUrls.isEmpty()) {
+            throw new IllegalArgumentException("Image URLs list cannot be null or empty.");
+        }
+
+        PDDocument document = new PDDocument();
+        PDRectangle pageSize = PDRectangle.A4; // Default page size
+
+        // Extract the name from the first image URL and sanitize it
+        String firstImageUrl = imageUrls.get(0);
+        String pdfName = firstImageUrl.substring(firstImageUrl.lastIndexOf('/') + 1);
+        pdfName = sanitizeFileName(pdfName);
+        if (!pdfName.toLowerCase().endsWith(".pdf")) {
+            pdfName += ".pdf"; // Append .pdf extension if not present
+        }
+        for (String imageUrl : imageUrls) {
+            File tempImageFile = downloadImageToTempFile(imageUrl);
+            PDImageXObject pdImage = PDImageXObject.createFromFile(tempImageFile.getAbsolutePath(), document);
+
+            PDPage page = new PDPage(pageSize);
+            document.addPage(page);
+            PDPageContentStream contentStream = new PDPageContentStream(document, page);
+
+            // Scale image to fit the page
+            float scale = Math.min(pageSize.getWidth() / pdImage.getWidth(),
+                    pageSize.getHeight() / pdImage.getHeight());
+            float scaledWidth = pdImage.getWidth() * scale;
+            float scaledHeight = pdImage.getHeight() * scale;
+            float x = (pageSize.getWidth() - scaledWidth) / 2;
+            float y = (pageSize.getHeight() - scaledHeight) / 2;
+
+            contentStream.drawImage(pdImage, x, y, scaledWidth, scaledHeight);
+            contentStream.close();
+
+            tempImageFile.delete();
+        }
+
+        Path pdfPath = targetDirectory.resolve(pdfName);
+        document.save(pdfPath.toFile());
+        document.close();
+    }
+
+    private String sanitizeFileName(String name) {
+        return name.replaceAll("[^a-zA-Z0-9._-]", "_");
+    }
+
+    private File downloadImageToTempFile(String imageUrl) throws IOException {
+        try {
+            URL url = new URL(imageUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+
+            // Check if the response code indicates a successful download
+            int responseCode = connection.getResponseCode();
+            if (responseCode != HttpURLConnection.HTTP_OK) {
+                throw new IOException("Failed to download: " + imageUrl);
+            }
+
+            // Create a temporary file to store the image
+            File tempFile = File.createTempFile("image", ".jpg");
+            tempFile.deleteOnExit();
+
+            // Copy the downloaded image to the temporary file
+            try (InputStream inputStream = connection.getInputStream();
+                    FileOutputStream outputStream = new FileOutputStream(tempFile)) {
+                byte[] buffer = new byte[1024];
+                int bytesRead;
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, bytesRead);
+                }
+            }
+            return tempFile;
+        } catch (IOException e) {
+            throw new IOException("Invalid URL: " + imageUrl, e);
+        }
+    }
+
+    @FXML
+    private void handleDownloadPdf() {
+        try {
+            List<String> urls = extractUrls(urlsTextArea.getText());
+            mergeImagesIntoPDF(urls, selectedDirectory.toPath());
+        } catch (IOException e) {
+            showAlert("Error", "Failed to merge images into PDF", e.getMessage(), Alert.AlertType.ERROR);
+        }
     }
 
 }

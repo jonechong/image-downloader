@@ -15,7 +15,7 @@
    xmlns="http://javafx.com/javafx/21.0.1"
    xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.jone.PrimaryController">
    <children>
-      <MenuBar prefHeight="0.0" prefWidth="688.0">
+      <!-- <MenuBar prefHeight="0.0" prefWidth="688.0">
          <menus>
             <Menu mnemonicParsing="false" text="File">
                <items>
@@ -33,7 +33,7 @@
                </items>
             </Menu>
          </menus>
-      </MenuBar>
+      </MenuBar> -->
       <Label alignment="CENTER" prefHeight="17.0" prefWidth="709.0" text="URLs:" />
       <TextArea fx:id="urlsTextArea" prefHeight="194.0" prefWidth="703.0" promptText="Insert URLs here. You can separate each URL by commas, spaces or newline (enter button)">
          <padding>
@@ -58,7 +58,7 @@
          <buttons>
             <Button mnemonicParsing="false" onAction="#handleSelectDirectory" text="Select Download Directory" />
             <Button fx:id="downloadImagesButton" onAction='#handleDownloadImages' disable="true" mnemonicParsing="false" text="Download Images" />
-            <Button fx:id="downloadPdfButton" disable="true" mnemonicParsing="false" text="Download PDF" />
+            <Button fx:id="downloadPdfButton" onAction="#handleDownloadPdf" disable="true" mnemonicParsing="false" text="Download PDF" />
          </buttons>
          <padding>
             <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
